@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="admin-entry">
+    <a href="/admin" class="btn btn-secondary admin-login-link">Вход для администратора</a>
+</div>
+<div class="card">
+    <p>Заполните форму. После отправки запись сохранится, а администратор увидит её в Telegram и в панели управления.</p>
+    <form method="post" action="/submit">
+        <div class="grid cols-2">
+            <div>
+                <label>Кто ставит задачу</label>
+                <input type="text" name="initiator" placeholder="Например: Иван" required>
+            </div>
+            <div>
+                <label>Контакт для связи</label>
+                <input type="text" name="contact" placeholder="Телефон, Telegram, e-mail">
+            </div>
+        </div>
+        <div style="margin-top:14px;">
+            <label>Кратко о задаче</label>
+            <input type="text" name="title" placeholder="Например: Подготовить отчет по объекту" required>
+        </div>
+        <div style="margin-top:14px;">
+            <label>Подробное описание</label>
+            <textarea name="description" placeholder="Опишите задачу подробно"></textarea>
+        </div>
+        <div style="margin-top:14px; max-width:320px;">
+            <label>Приоритет</label>
+            <select name="priority">
+                <option>Обычный</option>
+                <option>Высокий</option>
+                <option>Срочный</option>
+                <option>Низкий</option>
+            </select>
+        </div>
+        <div class="actions">
+            <button type="submit">Отправить задачу</button>
+        </div>
+    </form>
+</div>
+<div class="footer-note">Публичная форма без входа. Для просмотра всех записей используется отдельная админка.</div>
+{% endblock %}

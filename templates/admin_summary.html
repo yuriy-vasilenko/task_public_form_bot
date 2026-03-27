@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+{% include 'admin_nav.html' %}
+<div class="grid cols-2">
+    <div class="card">
+        <h3 style="margin-top:0;">Краткая сводка за сегодня</h3>
+        {% for task in today_tasks %}
+            <div class="list-card">
+                <div><strong>#{{ task['id'] }}</strong> {{ task['initiator'] }} | {{ task['title'] }}</div>
+                <div class="small">{{ task['created_at'] }}</div>
+                <div class="actions"><a class="btn btn-secondary" href="/admin/task/{{ task['id'] }}">Подробнее</a></div>
+            </div>
+        {% else %}
+            <p>Сегодня записей нет.</p>
+        {% endfor %}
+    </div>
+    <div class="card">
+        <h3 style="margin-top:0;">Последние 20 записей</h3>
+        {% for task in recent_tasks %}
+            <div class="list-card">
+                <div><strong>#{{ task['id'] }}</strong> {{ task['initiator'] }} | {{ task['title'] }}</div>
+                <div class="small">{{ task['created_at'] }} • {{ task['status'] }}</div>
+                <div class="actions"><a class="btn btn-secondary" href="/admin/task/{{ task['id'] }}">Подробнее</a></div>
+            </div>
+        {% else %}
+            <p>Записей пока нет.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

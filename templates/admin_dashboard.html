@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block content %}
+{% include 'admin_nav.html' %}
+<div class="grid cols-4">
+    <div class="kpi"><div>Всего записей</div><div class="value">{{ total }}</div></div>
+    <div class="kpi"><div>Сегодня</div><div class="value">{{ today }}</div></div>
+    <div class="kpi"><div>В работе</div><div class="value">{{ in_work }}</div></div>
+    <div class="kpi"><div>Выполнено</div><div class="value">{{ completed }}</div></div>
+</div>
+
+<div class="grid cols-2" style="margin-top:18px;">
+    <div class="card">
+        <h3 style="margin-top:0;">Telegram</h3>
+        {% if bot_ready %}
+            <p class="success-text">Бот настроен: новые записи можно получать мгновенно, а сводку открывать кнопками в Telegram.</p>
+        {% else %}
+            <p class="error">Бот ещё не настроен. Укажите BOT_TOKEN. ADMIN_CHAT_ID нужен только если включены мгновенные уведомления о новых заявках.</p>
+        {% endif %}
+        {% if base_url %}
+            <p class="small">Webhook для Telegram: {{ base_url }}/telegram/webhook</p>
+        {% else %}
+            <p class="small">Чтобы подключить webhook, укажите BASE_URL в переменных окружения.</p>
+        {% endif %}
+    </div>
+    <div class="card">
+        <h3 style="margin-top:0;">Что умеет проект</h3>
+        <ul>
+            <li>Публичная форма без входа</li>
+            <li>Админка с полным списком записей</li>
+            <li>Краткая сводка на сайте</li>
+            <li>Краткая таблица и кнопки «Подробнее» в Telegram</li>
+        </ul>
+    </div>
+</div>
+
+<div class="card" style="margin-top:18px;">
+    <h3 style="margin-top:0;">Последние записи</h3>
+    {% if latest %}
+        {% for task in latest %}
+            <div class="list-card">
+                <div><strong>#{{ task['id'] }}</strong> {{ task['initiator'] }} | {{ task['title'] }}</div>
+                <div class="small">{{ task['created_at'] }} • {{ task['priority'] }} • {{ task['status'] }}</div>
+                <div class="actions">
+                    <a class="btn btn-secondary" href="/admin/task/{{ task['id'] }}">Открыть</a>
+                    <a class="btn btn-secondary" href="/admin/task/{{ task['id'] }}/edit">Редактировать</a>
+                    <form method="post" action="/admin/task/{{ task['id'] }}/delete" onsubmit="return confirm('Удалить запись #{{ task['id'] }}?')" style="display:inline;">
+                        <button class="btn btn-danger" type="submit">Удалить</button>
+                    </form>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>Записей пока нет.</p>
+    {% endif %}
+</div>
+{% endblock %}

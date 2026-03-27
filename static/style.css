@@ -1,0 +1,214 @@
+:root {
+    --bg: #f4f6f8;
+    --card: #ffffff;
+    --line: #d9dde3;
+    --text: #20262e;
+    --muted: #5e6a78;
+    --primary: #1e5eff;
+    --danger: #c62828;
+    --success: #1f8a46;
+}
+
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+}
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 16px 40px;
+}
+.header {
+    margin-bottom: 20px;
+}
+.header h1 { margin: 0 0 8px; font-size: 30px; }
+.header p { margin: 0; color: var(--muted); }
+.nav {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+.nav a {
+    background: var(--card);
+    color: var(--text);
+    text-decoration: none;
+    border: 1px solid var(--line);
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-weight: 700;
+}
+.card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.04);
+}
+.grid {
+    display: grid;
+    gap: 16px;
+}
+.grid.cols-2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.grid.cols-4 { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 700;
+}
+input, textarea, select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    font-size: 15px;
+    background: #fff;
+}
+textarea { min-height: 140px; resize: vertical; }
+.actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+}
+button, .btn {
+    display: inline-block;
+    border: none;
+    border-radius: 10px;
+    padding: 11px 16px;
+    background: var(--primary);
+    color: #fff;
+    text-decoration: none;
+    cursor: pointer;
+    font-weight: 700;
+}
+.btn-secondary {
+    background: #fff;
+    color: var(--text);
+    border: 1px solid var(--line);
+}
+.btn-danger {
+    background: var(--danger);
+}
+.badge {
+    display: inline-block;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 13px;
+    font-weight: 700;
+    background: #eef3ff;
+    color: #2646a5;
+}
+.badge.success { background: #e9f8ef; color: var(--success); }
+.badge.warn { background: #fff4dd; color: #996400; }
+.badge.gray { background: #eef1f4; color: #5f6b77; }
+.table-wrap {
+    overflow-x: auto;
+}
+table {
+    width: 100%;
+    min-width: 760px;
+    border-collapse: collapse;
+    background: var(--card);
+}
+th, td {
+    padding: 12px 10px;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    vertical-align: top;
+    word-break: break-word;
+}
+th { background: #f8fafc; }
+.small { font-size: 13px; color: var(--muted); }
+.error { color: var(--danger); font-weight: 700; }
+.success-text { color: var(--success); font-weight: 700; }
+.kpi {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px;
+}
+.kpi .value { font-size: 28px; font-weight: 800; margin-top: 8px; }
+.list-card {
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+    margin-bottom: 12px;
+}
+.two-col {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+}
+.footer-note {
+    margin-top: 18px;
+    color: var(--muted);
+    font-size: 13px;
+}
+.admin-entry {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+.admin-login-link {
+    font-weight: 700;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 14px 10px 24px;
+    }
+    .header h1 {
+        font-size: 24px;
+    }
+    .card {
+        padding: 14px;
+    }
+    .nav a {
+        flex: 1 1 calc(50% - 10px);
+        text-align: center;
+        padding: 10px 8px;
+    }
+    .kpi .value {
+        font-size: 22px;
+    }
+    .actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    button, .btn {
+        width: 100%;
+        text-align: center;
+    }
+    input, textarea, select {
+        font-size: 16px;
+    }
+    table {
+        min-width: 640px;
+        font-size: 14px;
+    }
+    th, td {
+        padding: 10px 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header h1 {
+        font-size: 21px;
+    }
+    .nav a {
+        flex-basis: 100%;
+    }
+    .grid.cols-2,
+    .grid.cols-4,
+    .two-col {
+        grid-template-columns: 1fr;
+    }
+}

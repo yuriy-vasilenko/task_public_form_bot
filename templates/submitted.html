@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card">
+    <p class="success-text">Запись успешно отправлена.</p>
+    {% if task %}
+    <div class="two-col">
+        <div><strong>Номер:</strong> #{{ task['id'] }}</div>
+        <div><strong>Дата:</strong> {{ task['created_at'] }}</div>
+        <div><strong>Инициатор:</strong> {{ task['initiator'] }}</div>
+        <div><strong>Приоритет:</strong> {{ task['priority'] }}</div>
+    </div>
+    <div style="margin-top:12px;"><strong>Кратко:</strong> {{ task['title'] }}</div>
+    {% endif %}
+    <div class="actions">
+        <a class="btn" href="/">Отправить ещё одну задачу</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card" style="max-width:440px; margin:0 auto;">
+    <form method="post" action="/admin/login" autocomplete="off">
+        <input type="text" name="username" autocomplete="username" tabindex="-1" style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;">
+        <input type="password" name="password" autocomplete="current-password" tabindex="-1" style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;">
+        <div>
+            <label>Логин</label>
+            <input type="text" name="admin_username" autocomplete="off" autocapitalize="off" spellcheck="false" required>
+        </div>
+        <div style="margin-top:14px;">
+            <label>Пароль</label>
+            <input type="password" name="admin_password" autocomplete="new-password" required>
+        </div>
+        {% if error %}<p class="error">{{ error }}</p>{% endif %}
+        <div class="actions">
+            <button type="submit">Войти</button>
+            <a class="btn btn-secondary" href="/">Публичная форма</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

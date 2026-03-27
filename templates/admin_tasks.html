@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block content %}
+{% include 'admin_nav.html' %}
+<div class="card">
+    <form method="get" action="/admin/tasks">
+        <div class="grid cols-2">
+            <div>
+                <label>Поиск</label>
+                <input type="text" name="q" value="{{ q }}" placeholder="Инициатор, задача, описание, контакт">
+            </div>
+            <div>
+                <label>Статус</label>
+                <select name="status">
+                    <option value="">Все</option>
+                    {% for item in ['Новая','В работе','Выполнена','Отложена'] %}
+                        <option value="{{ item }}" {% if status_filter == item %}selected{% endif %}>{{ item }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="grid cols-2" style="margin-top:14px;">
+            <div>
+                <label>Приоритет</label>
+                <select name="priority">
+                    <option value="">Все</option>
+                    {% for item in ['Обычный','Высокий','Срочный','Низкий'] %}
+                        <option value="{{ item }}" {% if priority_filter == item %}selected{% endif %}>{{ item }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="actions">
+            <button type="submit">Применить фильтр</button>
+            <a class="btn btn-secondary" href="/admin/tasks">Сбросить</a>
+        </div>
+    </form>
+</div>
+
+<div class="card" style="margin-top:18px;">
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Дата</th>
+                    <th>Инициатор</th>
+                    <th>Задача</th>
+                    <th>Контакт</th>
+                    <th>Приоритет</th>
+                    <th>Статус</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for task in tasks %}
+                <tr>
+                    <td>#{{ task['id'] }}</td>
+                    <td>{{ task['created_at'] }}</td>
+                    <td>{{ task['initiator'] }}</td>
+                    <td>{{ task['title'] }}</td>
+                    <td>{{ task['contact'] or '—' }}</td>
+                    <td>{{ task['priority'] }}</td>
+                    <td>{{ task['status'] }}</td>
+                    <td>
+                        <a class="btn btn-secondary" href="/admin/task/{{ task['id'] }}">Открыть</a>
+                        <a class="btn btn-secondary" href="/admin/task/{{ task['id'] }}/edit">Редактировать</a>
+                        <form method="post" action="/admin/task/{{ task['id'] }}/delete" onsubmit="return confirm('Удалить запись #{{ task['id'] }}?')" style="display:inline;">
+                            <button class="btn btn-danger" type="submit">Удалить</button>
+                        </form>
+                    </td>
+                </tr>
+            {% else %}
+                <tr><td colspan="8">Записей не найдено.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

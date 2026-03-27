@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title if page_title else 'Сервис задач' }}</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>{{ page_title if page_title else 'Сервис задач' }}</h1>
+            {% if subtitle %}<p>{{ subtitle }}</p>{% endif %}
+        </div>
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

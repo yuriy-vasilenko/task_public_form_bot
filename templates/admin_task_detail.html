@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+{% include 'admin_nav.html' %}
+<div class="card">
+    {% if task %}
+        <div class="two-col">
+            <div><strong>Номер:</strong> #{{ task['id'] }}</div>
+            <div><strong>Дата:</strong> {{ task['created_at'] }}</div>
+            <div><strong>Инициатор:</strong> {{ task['initiator'] }}</div>
+            <div><strong>Контакт:</strong> {{ task['contact'] or '—' }}</div>
+            <div><strong>Приоритет:</strong> {{ task['priority'] }}</div>
+            <div><strong>Статус:</strong> {{ task['status'] }}</div>
+        </div>
+        <div style="margin-top:14px;"><strong>Кратко:</strong> {{ task['title'] }}</div>
+        <div style="margin-top:14px;"><strong>Полное описание:</strong><br>{{ task['description'] or '—' }}</div>
+        <div style="margin-top:14px;"><strong>Источник:</strong> {{ task['source'] }}</div>
+        <div class="actions">
+            <a class="btn" href="/admin/task/{{ task['id'] }}/edit">Редактировать</a>
+            <a class="btn btn-secondary" href="/admin/tasks">Назад к списку</a>
+            <form method="post" action="/admin/task/{{ task['id'] }}/delete" onsubmit="return confirm('Удалить запись?')" style="display:inline;">
+                <button class="btn btn-danger" type="submit">Удалить</button>
+            </form>
+        </div>
+    {% else %}
+        <p>Запись не найдена.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block content %}
+{% include 'admin_nav.html' %}
+<div class="card">
+    {% if task %}
+    <form method="post" action="/admin/task/{{ task['id'] }}/edit">
+        <div class="grid cols-2">
+            <div>
+                <label>Инициатор</label>
+                <input type="text" name="initiator" value="{{ task['initiator'] }}" required>
+            </div>
+            <div>
+                <label>Контакт</label>
+                <input type="text" name="contact" value="{{ task['contact'] }}">
+            </div>
+        </div>
+        <div style="margin-top:14px;">
+            <label>Кратко</label>
+            <input type="text" name="title" value="{{ task['title'] }}" required>
+        </div>
+        <div style="margin-top:14px;">
+            <label>Описание</label>
+            <textarea name="description">{{ task['description'] }}</textarea>
+        </div>
+        <div class="grid cols-2" style="margin-top:14px;">
+            <div>
+                <label>Приоритет</label>
+                <select name="priority">
+                    {% for item in ['Обычный','Высокий','Срочный','Низкий'] %}
+                        <option value="{{ item }}" {% if task['priority'] == item %}selected{% endif %}>{{ item }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label>Статус</label>
+                <select name="status">
+                    {% for item in ['Новая','В работе','Выполнена','Отложена'] %}
+                        <option value="{{ item }}" {% if task['status'] == item %}selected{% endif %}>{{ item }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="actions">
+            <button type="submit">Сохранить изменения</button>
+            <a class="btn btn-secondary" href="/admin/task/{{ task['id'] }}">Отмена</a>
+        </div>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}
