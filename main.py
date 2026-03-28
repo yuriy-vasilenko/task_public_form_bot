@@ -47,6 +47,11 @@ except ZoneInfoNotFoundError:
     from datetime import timezone
 
     MOSCOW_TZ = timezone(timedelta(hours=3))
+
+try:
+    APP_TZ = ZoneInfo(TIMEZONE_LABEL)
+except ZoneInfoNotFoundError:
+    APP_TZ = MOSCOW_TZ
 DAILY_ALL_HOUR_MSK = 16
 DAILY_ALL_MINUTE_MSK = 30
 
@@ -60,7 +65,7 @@ templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 
 def now_str() -> str:
-    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    return datetime.now(APP_TZ).strftime("%Y-%m-%d %H:%M:%S")
 
 
 def get_conn() -> sqlite3.Connection:
@@ -457,7 +462,7 @@ def summary_keyboard(rows: list[sqlite3.Row], mode: str) -> dict:
 
 
 def get_today_tasks(limit: int = 10) -> list[sqlite3.Row]:
-    today = datetime.now().strftime("%Y-%m-%d")
+    today = datetime.now(APP_TZ).strftime("%Y-%m-%d")
     return fetchall(
         "SELECT * FROM tasks WHERE substr(created_at,1,10)=? ORDER BY id DESC LIMIT ?",
         (today, limit),
@@ -471,7 +476,7 @@ def get_recent_tasks(limit: int = 10) -> list[sqlite3.Row]:
 
 
 def get_last_week_tasks(limit: int = 20) -> list[sqlite3.Row]:
-    border = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d %H:%M:%S")
+    border = (datetime.now(APP_TZ) - timedelta(days=7)).strftime("%Y-%m-%d %H:%M:%S")
     return fetchall("SELECT * FROM tasks WHERE created_at >= ? ORDER BY id DESC LIMIT ?", (border, limit))
 
 
@@ -689,7 +694,10 @@ def admin_dashboard(request: Request):
         return redirect
 
     total = fetchone("SELECT COUNT(*) AS c FROM tasks")["c"]
-    today = fetchone("SELECT COUNT(*) AS c FROM tasks WHERE substr(created_at,1,10)=?", (datetime.now().strftime("%Y-%m-%d"),))["c"]
+    today = fetchone(
+        "SELECT COUNT(*) AS c FROM tasks WHERE substr(created_at,1,10)=?",
+        (datetime.now(APP_TZ).strftime("%Y-%m-%d"),),
+    )["c"]
     in_work = fetchone("SELECT COUNT(*) AS c FROM tasks WHERE status='В работе'")["c"]
     completed = fetchone("SELECT COUNT(*) AS c FROM tasks WHERE status='Выполнена'")["c"]
     latest = fetchall("SELECT * FROM tasks ORDER BY id DESC LIMIT 8")
