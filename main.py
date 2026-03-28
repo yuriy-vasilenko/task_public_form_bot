@@ -52,8 +52,8 @@ try:
     APP_TZ = ZoneInfo(TIMEZONE_LABEL)
 except ZoneInfoNotFoundError:
     APP_TZ = MOSCOW_TZ
-DAILY_ALL_HOUR_MSK = 16
-DAILY_ALL_MINUTE_MSK = 30
+DAILY_ALL_HOUR_MSK = 9
+DAILY_ALL_MINUTE_MSK = 0
 
 # max printable width inside <pre> per chunk (Telegram limit 4096 per message)
 TG_TABLE_CHUNK = 3400
