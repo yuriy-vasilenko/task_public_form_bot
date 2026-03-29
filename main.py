@@ -111,6 +111,15 @@ def init_db() -> None:
         )
         """
     )
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS daily_reports (
+            report_date TEXT PRIMARY KEY,
+            generated_at TEXT NOT NULL,
+            report_text TEXT NOT NULL
+        )
+        """
+    )
     conn.commit()
     conn.close()
 
@@ -157,8 +166,7 @@ def _daily_all_records_loop() -> None:
             if is_target_time:
                 today = now_msk.strftime("%Y-%m-%d")
                 if _claim_daily_all_slot(today):
-                    for chat_id in get_active_subscribers():
-                        send_all_tasks_table(chat_id)
+                    generate_and_send_daily_report(today)
             time.sleep(20)
         except Exception:
             time.sleep(20)
@@ -253,6 +261,37 @@ def _claim_daily_all_slot(today: str) -> bool:
     conn.commit()
     conn.close()
     return changed
+
+
+def save_daily_report(report_date: str, report_text: str) -> None:
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute(
+        """
+        INSERT INTO daily_reports (report_date, generated_at, report_text)
+        VALUES (?, ?, ?)
+        ON CONFLICT(report_date) DO UPDATE SET
+            generated_at = excluded.generated_at,
+            report_text = excluded.report_text
+        """,
+        (report_date, now_str(), report_text),
+    )
+    conn.commit()
+    conn.close()
+
+
+def get_daily_reports(limit: int = 30) -> list[sqlite3.Row]:
+    return fetchall(
+        "SELECT report_date, generated_at, report_text FROM daily_reports ORDER BY report_date DESC LIMIT ?",
+        (limit,),
+    )
+
+
+def generate_and_send_daily_report(report_date: str) -> None:
+    rows = fetchall("SELECT * FROM tasks ORDER BY id DESC", ())
+    save_daily_report(report_date, build_daily_report_text(rows))
+    for chat_id in get_active_subscribers():
+        send_all_tasks_table(chat_id, rows)
 
 
 def tg_api(method: str, payload: dict) -> dict:
@@ -354,19 +393,8 @@ def _all_tasks_record_blocks(rows: list[sqlite3.Row]) -> list[str]:
     return blocks
 
 
-def send_all_tasks_table(chat_id: str) -> None:
-    rows = fetchall("SELECT * FROM tasks ORDER BY id DESC", ())
-    if not rows:
-        tg_send_message(
-            chat_id,
-            "<b>Все записи</b>\n\nВ системе пока нет задач.",
-            build_reply_keyboard(),
-        )
-        return
-
+def _all_tasks_bodies(rows: list[sqlite3.Row]) -> list[str]:
     record_blocks = _all_tasks_record_blocks(rows)
-    total = len(rows)
-
     batches: list[list[str]] = []
     batch: list[str] = []
     batch_len = 0
@@ -380,11 +408,38 @@ def send_all_tasks_table(chat_id: str) -> None:
         batch_len += add
     if batch:
         batches.append(batch)
+    return ["\n\n".join(b) for b in batches]
 
-    n_batches = len(batches)
-    for i, batch_blks in enumerate(batches):
+
+def build_daily_report_text(rows: list[sqlite3.Row]) -> str:
+    if not rows:
+        return "В системе пока нет задач."
+    bodies = _all_tasks_bodies(rows)
+    n_batches = len(bodies)
+    chunks: list[str] = []
+    for i, body in enumerate(bodies):
         part = f" (часть {i + 1}/{n_batches})" if n_batches > 1 else ""
-        body = "\n\n".join(batch_blks)
+        chunks.append(f"Все записи{part}\n\n{body}")
+    chunks.append(f"Всего записей: {len(rows)}")
+    return "\n\n".join(chunks)
+
+
+def send_all_tasks_table(chat_id: str, rows: Optional[list[sqlite3.Row]] = None) -> None:
+    if rows is None:
+        rows = fetchall("SELECT * FROM tasks ORDER BY id DESC", ())
+    if not rows:
+        tg_send_message(
+            chat_id,
+            "<b>Все записи</b>\n\nВ системе пока нет задач.",
+            build_reply_keyboard(),
+        )
+        return
+
+    total = len(rows)
+    bodies = _all_tasks_bodies(rows)
+    n_batches = len(bodies)
+    for i, body in enumerate(bodies):
+        part = f" (часть {i + 1}/{n_batches})" if n_batches > 1 else ""
         footer = ""
         if i == n_batches - 1:
             footer = f"\n\n<i>Всего записей: {total}</i>"
@@ -501,7 +556,7 @@ def send_help(chat_id: str) -> None:
         "<b>Команды бота</b>\n\n"
         "• <b>Все записи</b> — полная таблица по всем задачам в системе "
         "(дата и время, инициатор, краткая формулировка). Доступна по кнопке.\n"
-        "• <b>Ежедневно в 16:30 МСК</b> бот автоматически присылает полную таблицу всех записей.\n"
+        "• <b>Ежедневно в 09:00 МСК</b> бот автоматически присылает полную таблицу всех записей.\n"
         "• <b>Сводка за сегодня</b> — краткая таблица за текущий день.\n"
         "• <b>Последние 10</b> — последние добавленные записи.\n"
         "• <b>Новые за 7 дней</b> — выборка за неделю.\n"
@@ -525,7 +580,7 @@ def process_telegram_message(message: dict) -> None:
         welcome = (
             "<b>Бот подключен.</b>\n\n"
             "Кнопка <b>Все записи</b> присылает таблицу по всем задачам в системе. "
-            "Также ежедневно в <b>16:30 МСК</b> бот отправляет полную таблицу автоматически."
+            "Также ежедневно в <b>09:00 МСК</b> бот отправляет полную таблицу автоматически."
         )
         tg_send_message(chat_id, welcome, build_reply_keyboard())
         send_help(chat_id)
@@ -847,6 +902,35 @@ def admin_summary(request: Request):
             "recent_tasks": recent_tasks,
         },
     )
+
+
+@app.get("/admin/reports", response_class=HTMLResponse)
+def admin_reports(request: Request):
+    redirect = require_login(request)
+    if redirect:
+        return redirect
+
+    reports = get_daily_reports(60)
+    return templates.TemplateResponse(
+        request,
+        "admin_reports.html",
+        {
+            "page_title": "Ежедневные отчеты 09:00",
+            "reports": reports,
+            "generated_now": request.query_params.get("generated") == "1",
+        },
+    )
+
+
+@app.post("/admin/reports/generate")
+def admin_reports_generate_now(request: Request):
+    redirect = require_login(request)
+    if redirect:
+        return redirect
+
+    report_date = datetime.now(MOSCOW_TZ).strftime("%Y-%m-%d")
+    generate_and_send_daily_report(report_date)
+    return RedirectResponse(url="/admin/reports?generated=1", status_code=303)
 
 
 @app.post("/telegram/webhook")

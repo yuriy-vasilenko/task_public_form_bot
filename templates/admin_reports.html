@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+{% include 'admin_nav.html' %}
+<div class="card">
+    <p class="small" style="margin-top:0;">
+        Здесь сохраняются ежедневные отчеты, которые автоматически отправляются в Telegram в 09:00 по Москве.
+    </p>
+    {% if generated_now %}
+        <p class="success-text">Отчет сформирован и отправлен в Telegram подписчикам.</p>
+    {% endif %}
+    <form method="post" action="/admin/reports/generate">
+        <div class="actions" style="margin-top:0;">
+            <button type="submit">Сформировать отчет сейчас</button>
+        </div>
+    </form>
+    {% if reports %}
+        {% for item in reports %}
+            <div class="list-card">
+                <div><strong>Дата отчета:</strong> {{ item['report_date'] }}</div>
+                <div class="small" style="margin-top:4px;">Сформирован: {{ item['generated_at'] }}</div>
+                <pre class="report-pre">{{ item['report_text'] }}</pre>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>Отчеты пока не сформированы.</p>
+    {% endif %}
+</div>
+{% endblock %}

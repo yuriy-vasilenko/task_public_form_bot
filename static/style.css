@@ -139,6 +139,17 @@ th { background: #f8fafc; }
     background: #fff;
     margin-bottom: 12px;
 }
+.report-pre {
+    margin: 10px 0 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: #f8fafc;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 13px;
+    line-height: 1.35;
+}
 .two-col {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
