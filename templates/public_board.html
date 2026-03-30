@@ -14,7 +14,10 @@
     <div class="dept-grid">
         {% for dep in departments %}
             <a class="dept-card" href="/board/department/{{ loop.index0 }}">
-                <div class="dept-name">{{ dep }}</div>
+                <div class="dept-head">
+                    <span class="dept-icon">{{ dep[:2] }}</span>
+                    <div class="dept-name">{{ dep }}</div>
+                </div>
                 <div class="small">Нажмите, чтобы открыть задачи отдела</div>
                 <div class="dept-count">{{ counts[dep] }}</div>
             </a>
