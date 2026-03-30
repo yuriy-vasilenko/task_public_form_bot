@@ -1,29 +1,23 @@
 {% extends 'base.html' %}
 {% block content %}
 {% include 'admin_nav.html' %}
-<div class="card">
-    <p class="small" style="margin-top:0;">
+<div class="card board-shell">
+    <div class="board-topbar">
+        <div class="actions" style="margin-top:0;">
+            <a class="btn btn-secondary" href="/admin/board">Обновить</a>
+        </div>
+        <div class="small board-meta">Управляемая доска для админки</div>
+    </div>
+    <p class="small board-note">
         Доска распределения по фиксированным отделам. Новые задачи отображаются сверху вниз в соответствующей колонке.
     </p>
-    <div class="board-wrap">
+    <div class="dept-grid">
         {% for dep in departments %}
-            <section class="board-col">
-                <h3>{{ dep }}</h3>
-                {% if board[dep] %}
-                    {% for task in board[dep] %}
-                        <article class="board-item">
-                            <div><strong>#{{ task['id'] }}</strong> {{ task['title'] }}</div>
-                            <div class="small">{{ task['created_at'] }} • {{ task['initiator'] }}</div>
-                            <div class="small">{{ task['priority'] }} • {{ task['status'] }}</div>
-                            <div class="actions">
-                                <a class="btn btn-secondary" href="/admin/task/{{ task['id'] }}">Открыть</a>
-                            </div>
-                        </article>
-                    {% endfor %}
-                {% else %}
-                    <p class="small">Пока пусто.</p>
-                {% endif %}
-            </section>
+            <a class="dept-card" href="/admin/board/department/{{ loop.index0 }}">
+                <div class="dept-name">{{ dep }}</div>
+                <div class="small">Открыть таблицу задач отдела</div>
+                <div class="dept-count">{{ counts[dep] }}</div>
+            </a>
         {% endfor %}
     </div>
 </div>

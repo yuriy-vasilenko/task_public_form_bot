@@ -11,7 +11,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import requests
 from dotenv import load_dotenv
-from fastapi import FastAPI, Form, Request
+from fastapi import FastAPI, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -64,8 +64,8 @@ DEPARTMENTS = [
     "Юр отдел",
     "Сист Админ",
     "Энерго уч",
-    "Не назначено",
 ]
+DEFAULT_DEPARTMENT = "Диспетчер"
 
 # max printable width inside <pre> per chunk (Telegram limit 4096 per message)
 TG_TABLE_CHUNK = 3400
@@ -99,7 +99,7 @@ def init_db() -> None:
             title TEXT NOT NULL,
             description TEXT,
             contact TEXT,
-            department TEXT NOT NULL DEFAULT 'Не назначено',
+            department TEXT NOT NULL DEFAULT 'Диспетчер',
             priority TEXT NOT NULL DEFAULT 'Обычный',
             status TEXT NOT NULL DEFAULT 'Новая',
             source TEXT NOT NULL DEFAULT 'public_form'
@@ -108,8 +108,15 @@ def init_db() -> None:
     )
     task_columns = {str(row["name"]) for row in cur.execute("PRAGMA table_info(tasks)").fetchall()}
     if "department" not in task_columns:
-        cur.execute("ALTER TABLE tasks ADD COLUMN department TEXT NOT NULL DEFAULT 'Не назначено'")
-    cur.execute("UPDATE tasks SET department = 'Не назначено' WHERE department IS NULL OR trim(department) = ''")
+        cur.execute("ALTER TABLE tasks ADD COLUMN department TEXT NOT NULL DEFAULT 'Диспетчер'")
+    cur.execute(
+        """
+        UPDATE tasks
+        SET department = ?
+        WHERE department IS NULL OR trim(department) = '' OR department = 'Не назначено'
+        """,
+        (DEFAULT_DEPARTMENT,),
+    )
     cur.execute(
         """
         CREATE TABLE IF NOT EXISTS tg_subscribers (
@@ -492,7 +499,7 @@ def detail_text(task: sqlite3.Row) -> str:
         f"<b>Задача #{task['id']}</b>\n\n"
         f"<b>Дата:</b> {html.escape(task['created_at'])}\n"
         f"<b>Инициатор:</b> {html.escape(task['initiator'])}\n"
-        f"<b>Отдел:</b> {html.escape(task['department'] or 'Не назначено')}\n"
+        f"<b>Отдел:</b> {html.escape(task['department'] or DEFAULT_DEPARTMENT)}\n"
         f"<b>Кратко:</b> {html.escape(task['title'])}\n"
         f"<b>Описание:</b> {html.escape(task['description'] or '—')}\n"
         f"<b>Контакт:</b> {html.escape(task['contact'] or '—')}\n"
@@ -675,7 +682,7 @@ def submit_task(
     title: str = Form(...),
     description: str = Form(""),
     contact: str = Form(""),
-    department: str = Form("Не назначено"),
+    department: str = Form(DEFAULT_DEPARTMENT),
     priority: str = Form("Обычный"),
 ):
     task_id = execute(
@@ -689,7 +696,7 @@ def submit_task(
             title.strip(),
             description.strip(),
             contact.strip(),
-            department.strip() if department.strip() in DEPARTMENTS else "Не назначено",
+            department.strip() if department.strip() in DEPARTMENTS else DEFAULT_DEPARTMENT,
             priority.strip(),
         ),
     )
@@ -700,7 +707,7 @@ def submit_task(
         msg = (
             f"<b>Новая запись #{task['id']}</b>\n\n"
             f"<b>Инициатор:</b> {html.escape(task['initiator'])}\n"
-            f"<b>Отдел:</b> {html.escape(task['department'] or 'Не назначено')}\n"
+            f"<b>Отдел:</b> {html.escape(task['department'] or DEFAULT_DEPARTMENT)}\n"
             f"<b>Кратко:</b> {html.escape(task['title'])}\n"
             f"<b>Приоритет:</b> {html.escape(task['priority'])}"
         )
@@ -877,7 +884,7 @@ def admin_task_edit(
     title: str = Form(...),
     description: str = Form(""),
     contact: str = Form(""),
-    department: str = Form("Не назначено"),
+    department: str = Form(DEFAULT_DEPARTMENT),
     priority: str = Form("Обычный"),
     status: str = Form("Новая"),
 ):
@@ -896,7 +903,7 @@ def admin_task_edit(
             title.strip(),
             description.strip(),
             contact.strip(),
-            department.strip() if department.strip() in DEPARTMENTS else "Не назначено",
+            department.strip() if department.strip() in DEPARTMENTS else DEFAULT_DEPARTMENT,
             priority.strip(),
             status.strip(),
             task_id,
@@ -911,40 +918,79 @@ def admin_board(request: Request):
     if redirect:
         return redirect
 
-    rows = fetchall("SELECT * FROM tasks ORDER BY id DESC")
-    board = build_board(rows)
-
     return templates.TemplateResponse(
         request,
         "admin_board.html",
         {
             "page_title": "Доска распределения",
             "departments": DEPARTMENTS,
-            "board": board,
+            "counts": get_department_counts(),
         },
     )
 
 
-def build_board(rows: list[sqlite3.Row]) -> dict[str, list[sqlite3.Row]]:
-    board: dict[str, list[sqlite3.Row]] = {d: [] for d in DEPARTMENTS}
+@app.get("/admin/board/department/{dep_idx}", response_class=HTMLResponse)
+def admin_board_department(request: Request, dep_idx: int):
+    redirect = require_login(request)
+    if redirect:
+        return redirect
+
+    dep_name = get_department_by_idx(dep_idx)
+    return templates.TemplateResponse(
+        request,
+        "admin_board_department.html",
+        {
+            "page_title": f"Отдел: {dep_name}",
+            "department": dep_name,
+            "tasks": get_department_tasks(dep_name),
+        },
+    )
+
+
+def get_department_by_idx(dep_idx: int) -> str:
+    if dep_idx < 0 or dep_idx >= len(DEPARTMENTS):
+        raise HTTPException(status_code=404, detail="department not found")
+    return DEPARTMENTS[dep_idx]
+
+
+def get_department_tasks(dep_name: str) -> list[sqlite3.Row]:
+    return fetchall("SELECT * FROM tasks WHERE department = ? ORDER BY id DESC", (dep_name,))
+
+
+def get_department_counts() -> dict[str, int]:
+    counts = {dep: 0 for dep in DEPARTMENTS}
+    rows = fetchall("SELECT department, COUNT(*) AS c FROM tasks GROUP BY department", ())
     for row in rows:
-        dep = (row["department"] or "Не назначено").strip()
-        if dep not in board:
-            dep = "Не назначено"
-        board[dep].append(row)
-    return board
+        dep = (row["department"] or DEFAULT_DEPARTMENT).strip()
+        if dep not in counts:
+            dep = DEFAULT_DEPARTMENT
+        counts[dep] += int(row["c"])
+    return counts
 
 
 @app.get("/board", response_class=HTMLResponse)
 def public_board(request: Request):
-    rows = fetchall("SELECT * FROM tasks ORDER BY id DESC")
     return templates.TemplateResponse(
         request,
         "public_board.html",
         {
             "page_title": "Доска задач по отделам",
             "departments": DEPARTMENTS,
-            "board": build_board(rows),
+            "counts": get_department_counts(),
+        },
+    )
+
+
+@app.get("/board/department/{dep_idx}", response_class=HTMLResponse)
+def public_board_department(request: Request, dep_idx: int):
+    dep_name = get_department_by_idx(dep_idx)
+    return templates.TemplateResponse(
+        request,
+        "public_board_department.html",
+        {
+            "page_title": f"Отдел: {dep_name}",
+            "department": dep_name,
+            "tasks": get_department_tasks(dep_name),
         },
     )
 

@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card board-shell">
+    <div class="board-topbar">
+        <div class="actions" style="margin-top:0;">
+            <a class="btn btn-secondary" href="/board">К отделам</a>
+            <a class="btn btn-secondary" href="/">Новая задача</a>
+        </div>
+    </div>
+    <h3 style="margin:10px 0 12px;">{{ department }}</h3>
+    <div class="table-wrap board-table-wrap">
+        <table class="board-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Дата</th>
+                    <th>Кратко</th>
+                    <th>Инициатор</th>
+                    <th>Приоритет</th>
+                    <th>Статус</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for task in tasks %}
+                    <tr>
+                        <td>#{{ task['id'] }}</td>
+                        <td>{{ task['created_at'] }}</td>
+                        <td>{{ task['title'] }}</td>
+                        <td>{{ task['initiator'] }}</td>
+                        <td>{{ task['priority'] }}</td>
+                        <td>{{ task['status'] }}</td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="6">В этом отделе задач пока нет.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

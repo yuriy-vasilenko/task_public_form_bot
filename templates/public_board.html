@@ -1,28 +1,23 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="card">
-    <div class="actions" style="margin-top:0;">
-        <a class="btn btn-secondary" href="/">Новая задача</a>
+<div class="card board-shell">
+    <div class="board-topbar">
+        <div class="actions" style="margin-top:0;">
+            <a class="btn btn-secondary" href="/">Новая задача</a>
+            <a class="btn btn-secondary" href="/board">Обновить</a>
+        </div>
+        <div class="small board-meta">Колонки фиксированы по отделам</div>
     </div>
-    <p class="small" style="margin-top:10px;">
+    <p class="small board-note">
         Публичная доска распределения по отделам. Задачи отображаются сверху вниз (сначала новые).
     </p>
-    <div class="board-wrap">
+    <div class="dept-grid">
         {% for dep in departments %}
-            <section class="board-col">
-                <h3>{{ dep }}</h3>
-                {% if board[dep] %}
-                    {% for task in board[dep] %}
-                        <article class="board-item">
-                            <div><strong>#{{ task['id'] }}</strong> {{ task['title'] }}</div>
-                            <div class="small">{{ task['created_at'] }} • {{ task['initiator'] }}</div>
-                            <div class="small">{{ task['priority'] }} • {{ task['status'] }}</div>
-                        </article>
-                    {% endfor %}
-                {% else %}
-                    <p class="small">Пока пусто.</p>
-                {% endif %}
-            </section>
+            <a class="dept-card" href="/board/department/{{ loop.index0 }}">
+                <div class="dept-name">{{ dep }}</div>
+                <div class="small">Нажмите, чтобы открыть задачи отдела</div>
+                <div class="dept-count">{{ counts[dep] }}</div>
+            </a>
         {% endfor %}
     </div>
 </div>
