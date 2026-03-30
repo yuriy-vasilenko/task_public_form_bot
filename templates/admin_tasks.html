@@ -28,6 +28,15 @@
                     {% endfor %}
                 </select>
             </div>
+            <div>
+                <label>Отдел</label>
+                <select name="department">
+                    <option value="">Все</option>
+                    {% for item in departments %}
+                        <option value="{{ item }}" {% if department_filter == item %}selected{% endif %}>{{ item }}</option>
+                    {% endfor %}
+                </select>
+            </div>
         </div>
         <div class="actions">
             <button type="submit">Применить фильтр</button>
@@ -46,6 +55,7 @@
                     <th>Инициатор</th>
                     <th>Задача</th>
                     <th>Контакт</th>
+                    <th>Отдел</th>
                     <th>Приоритет</th>
                     <th>Статус</th>
                     <th></th>
@@ -59,6 +69,7 @@
                     <td>{{ task['initiator'] }}</td>
                     <td>{{ task['title'] }}</td>
                     <td>{{ task['contact'] or '—' }}</td>
+                    <td>{{ task['department'] or 'Не назначено' }}</td>
                     <td>{{ task['priority'] }}</td>
                     <td>{{ task['status'] }}</td>
                     <td>
@@ -70,7 +81,7 @@
                     </td>
                 </tr>
             {% else %}
-                <tr><td colspan="8">Записей не найдено.</td></tr>
+                <tr><td colspan="9">Записей не найдено.</td></tr>
             {% endfor %}
             </tbody>
         </table>

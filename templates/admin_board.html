@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+{% include 'admin_nav.html' %}
+<div class="card">
+    <p class="small" style="margin-top:0;">
+        Доска распределения по фиксированным отделам. Новые задачи отображаются сверху вниз в соответствующей колонке.
+    </p>
+    <div class="board-wrap">
+        {% for dep in departments %}
+            <section class="board-col">
+                <h3>{{ dep }}</h3>
+                {% if board[dep] %}
+                    {% for task in board[dep] %}
+                        <article class="board-item">
+                            <div><strong>#{{ task['id'] }}</strong> {{ task['title'] }}</div>
+                            <div class="small">{{ task['created_at'] }} • {{ task['initiator'] }}</div>
+                            <div class="small">{{ task['priority'] }} • {{ task['status'] }}</div>
+                            <div class="actions">
+                                <a class="btn btn-secondary" href="/admin/task/{{ task['id'] }}">Открыть</a>
+                            </div>
+                        </article>
+                    {% endfor %}
+                {% else %}
+                    <p class="small">Пока пусто.</p>
+                {% endif %}
+            </section>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

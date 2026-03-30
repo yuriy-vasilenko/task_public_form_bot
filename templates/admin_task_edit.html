@@ -24,6 +24,14 @@
         </div>
         <div class="grid cols-2" style="margin-top:14px;">
             <div>
+                <label>Отдел</label>
+                <select name="department">
+                    {% for item in departments %}
+                        <option value="{{ item }}" {% if (task['department'] or 'Не назначено') == item %}selected{% endif %}>{{ item }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
                 <label>Приоритет</label>
                 <select name="priority">
                     {% for item in ['Обычный','Высокий','Срочный','Низкий'] %}

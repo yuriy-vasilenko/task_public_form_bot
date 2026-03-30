@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="admin-entry">
+    <a href="/board" class="btn btn-secondary admin-login-link">Доска по отделам</a>
     <a href="/admin" class="btn btn-secondary admin-login-link">Вход для администратора</a>
 </div>
 <div class="card">
@@ -23,6 +24,15 @@
         <div style="margin-top:14px;">
             <label>Подробное описание</label>
             <textarea name="description" placeholder="Опишите задачу подробно"></textarea>
+        </div>
+        <div style="margin-top:14px; max-width:320px;">
+            <label>Отдел назначения</label>
+            <select name="department" required>
+                <option value="" disabled selected>Выберите отдел</option>
+                {% for item in departments %}
+                    <option value="{{ item }}">{{ item }}</option>
+                {% endfor %}
+            </select>
         </div>
         <div style="margin-top:14px; max-width:320px;">
             <label>Приоритет</label>

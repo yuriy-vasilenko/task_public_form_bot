@@ -54,6 +54,18 @@ except ZoneInfoNotFoundError:
     APP_TZ = MOSCOW_TZ
 DAILY_ALL_HOUR_MSK = 9
 DAILY_ALL_MINUTE_MSK = 0
+DEPARTMENTS = [
+    "Механик",
+    "Стр МУ",
+    "Диспетчер",
+    "Ассист Г",
+    "Ассист Д",
+    "Бухгалтерия",
+    "Юр отдел",
+    "Сист Админ",
+    "Энерго уч",
+    "Не назначено",
+]
 
 # max printable width inside <pre> per chunk (Telegram limit 4096 per message)
 TG_TABLE_CHUNK = 3400
@@ -87,12 +99,17 @@ def init_db() -> None:
             title TEXT NOT NULL,
             description TEXT,
             contact TEXT,
+            department TEXT NOT NULL DEFAULT 'Не назначено',
             priority TEXT NOT NULL DEFAULT 'Обычный',
             status TEXT NOT NULL DEFAULT 'Новая',
             source TEXT NOT NULL DEFAULT 'public_form'
         )
         """
     )
+    task_columns = {str(row["name"]) for row in cur.execute("PRAGMA table_info(tasks)").fetchall()}
+    if "department" not in task_columns:
+        cur.execute("ALTER TABLE tasks ADD COLUMN department TEXT NOT NULL DEFAULT 'Не назначено'")
+    cur.execute("UPDATE tasks SET department = 'Не назначено' WHERE department IS NULL OR trim(department) = ''")
     cur.execute(
         """
         CREATE TABLE IF NOT EXISTS tg_subscribers (
@@ -475,6 +492,7 @@ def detail_text(task: sqlite3.Row) -> str:
         f"<b>Задача #{task['id']}</b>\n\n"
         f"<b>Дата:</b> {html.escape(task['created_at'])}\n"
         f"<b>Инициатор:</b> {html.escape(task['initiator'])}\n"
+        f"<b>Отдел:</b> {html.escape(task['department'] or 'Не назначено')}\n"
         f"<b>Кратко:</b> {html.escape(task['title'])}\n"
         f"<b>Описание:</b> {html.escape(task['description'] or '—')}\n"
         f"<b>Контакт:</b> {html.escape(task['contact'] or '—')}\n"
@@ -645,6 +663,7 @@ def public_form(request: Request):
         {
             "page_title": "Отправить задачу",
             "app_title": APP_TITLE,
+            "departments": DEPARTMENTS,
         },
     )
 
@@ -656,12 +675,13 @@ def submit_task(
     title: str = Form(...),
     description: str = Form(""),
     contact: str = Form(""),
+    department: str = Form("Не назначено"),
     priority: str = Form("Обычный"),
 ):
     task_id = execute(
         """
-        INSERT INTO tasks (created_at, initiator, title, description, contact, priority, status, source)
-        VALUES (?, ?, ?, ?, ?, ?, 'Новая', 'public_form')
+        INSERT INTO tasks (created_at, initiator, title, description, contact, department, priority, status, source)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 'Новая', 'public_form')
         """,
         (
             now_str(),
@@ -669,6 +689,7 @@ def submit_task(
             title.strip(),
             description.strip(),
             contact.strip(),
+            department.strip() if department.strip() in DEPARTMENTS else "Не назначено",
             priority.strip(),
         ),
     )
@@ -679,6 +700,7 @@ def submit_task(
         msg = (
             f"<b>Новая запись #{task['id']}</b>\n\n"
             f"<b>Инициатор:</b> {html.escape(task['initiator'])}\n"
+            f"<b>Отдел:</b> {html.escape(task['department'] or 'Не назначено')}\n"
             f"<b>Кратко:</b> {html.escape(task['title'])}\n"
             f"<b>Приоритет:</b> {html.escape(task['priority'])}"
         )
@@ -779,6 +801,7 @@ def admin_tasks(
     q: str = "",
     status: str = "",
     priority: str = "",
+    department: str = "",
 ):
     redirect = require_login(request)
     if redirect:
@@ -788,15 +811,18 @@ def admin_tasks(
     params: list[str] = []
 
     if q.strip():
-        query += " AND (initiator LIKE ? OR title LIKE ? OR description LIKE ? OR contact LIKE ?)"
+        query += " AND (initiator LIKE ? OR title LIKE ? OR description LIKE ? OR contact LIKE ? OR department LIKE ?)"
         term = f"%{q.strip()}%"
-        params.extend([term, term, term, term])
+        params.extend([term, term, term, term, term])
     if status.strip():
         query += " AND status = ?"
         params.append(status.strip())
     if priority.strip():
         query += " AND priority = ?"
         params.append(priority.strip())
+    if department.strip():
+        query += " AND department = ?"
+        params.append(department.strip())
 
     query += " ORDER BY id DESC"
     rows = fetchall(query, tuple(params))
@@ -810,6 +836,8 @@ def admin_tasks(
             "q": q,
             "status_filter": status,
             "priority_filter": priority,
+            "department_filter": department,
+            "departments": DEPARTMENTS,
         },
     )
 
@@ -837,7 +865,7 @@ def admin_task_edit_page(task_id: int, request: Request):
     return templates.TemplateResponse(
         request,
         "admin_task_edit.html",
-        {"page_title": f"Редактирование #{task_id}", "task": task},
+        {"page_title": f"Редактирование #{task_id}", "task": task, "departments": DEPARTMENTS},
     )
 
 
@@ -849,6 +877,7 @@ def admin_task_edit(
     title: str = Form(...),
     description: str = Form(""),
     contact: str = Form(""),
+    department: str = Form("Не назначено"),
     priority: str = Form("Обычный"),
     status: str = Form("Новая"),
 ):
@@ -859,7 +888,7 @@ def admin_task_edit(
     execute(
         """
         UPDATE tasks
-        SET initiator = ?, title = ?, description = ?, contact = ?, priority = ?, status = ?
+        SET initiator = ?, title = ?, description = ?, contact = ?, department = ?, priority = ?, status = ?
         WHERE id = ?
         """,
         (
@@ -867,12 +896,57 @@ def admin_task_edit(
             title.strip(),
             description.strip(),
             contact.strip(),
+            department.strip() if department.strip() in DEPARTMENTS else "Не назначено",
             priority.strip(),
             status.strip(),
             task_id,
         ),
     )
     return RedirectResponse(url=f"/admin/task/{task_id}", status_code=303)
+
+
+@app.get("/admin/board", response_class=HTMLResponse)
+def admin_board(request: Request):
+    redirect = require_login(request)
+    if redirect:
+        return redirect
+
+    rows = fetchall("SELECT * FROM tasks ORDER BY id DESC")
+    board = build_board(rows)
+
+    return templates.TemplateResponse(
+        request,
+        "admin_board.html",
+        {
+            "page_title": "Доска распределения",
+            "departments": DEPARTMENTS,
+            "board": board,
+        },
+    )
+
+
+def build_board(rows: list[sqlite3.Row]) -> dict[str, list[sqlite3.Row]]:
+    board: dict[str, list[sqlite3.Row]] = {d: [] for d in DEPARTMENTS}
+    for row in rows:
+        dep = (row["department"] or "Не назначено").strip()
+        if dep not in board:
+            dep = "Не назначено"
+        board[dep].append(row)
+    return board
+
+
+@app.get("/board", response_class=HTMLResponse)
+def public_board(request: Request):
+    rows = fetchall("SELECT * FROM tasks ORDER BY id DESC")
+    return templates.TemplateResponse(
+        request,
+        "public_board.html",
+        {
+            "page_title": "Доска задач по отделам",
+            "departments": DEPARTMENTS,
+            "board": build_board(rows),
+        },
+    )
 
 
 @app.post("/admin/task/{task_id}/delete")

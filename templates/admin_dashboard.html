@@ -39,7 +39,7 @@
         {% for task in latest %}
             <div class="list-card">
                 <div><strong>#{{ task['id'] }}</strong> {{ task['initiator'] }} | {{ task['title'] }}</div>
-                <div class="small">{{ task['created_at'] }} • {{ task['priority'] }} • {{ task['status'] }}</div>
+                <div class="small">{{ task['created_at'] }} • {{ task['department'] or 'Не назначено' }} • {{ task['priority'] }} • {{ task['status'] }}</div>
                 <div class="actions">
                     <a class="btn btn-secondary" href="/admin/task/{{ task['id'] }}">Открыть</a>
                     <a class="btn btn-secondary" href="/admin/task/{{ task['id'] }}/edit">Редактировать</a>

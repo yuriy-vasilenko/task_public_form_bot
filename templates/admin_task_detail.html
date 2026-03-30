@@ -8,6 +8,7 @@
             <div><strong>Дата:</strong> {{ task['created_at'] }}</div>
             <div><strong>Инициатор:</strong> {{ task['initiator'] }}</div>
             <div><strong>Контакт:</strong> {{ task['contact'] or '—' }}</div>
+            <div><strong>Отдел:</strong> {{ task['department'] or 'Не назначено' }}</div>
             <div><strong>Приоритет:</strong> {{ task['priority'] }}</div>
             <div><strong>Статус:</strong> {{ task['status'] }}</div>
         </div>
