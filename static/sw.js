@@ -1,4 +1,4 @@
-const CACHE_NAME = "task-form-pwa-v2";
+const CACHE_NAME = "task-form-pwa-v3";
 const APP_SHELL = [
   "/",
   "/static/style.css",

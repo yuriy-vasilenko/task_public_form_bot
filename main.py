@@ -54,6 +54,8 @@ except ZoneInfoNotFoundError:
     APP_TZ = MOSCOW_TZ
 DAILY_ALL_HOUR_MSK = 9
 DAILY_ALL_MINUTE_MSK = 0
+TASK_STATUSES = ["Новая", "В работе", "Выполнена", "Отложена"]
+TASK_PRIORITIES = ["Обычный", "Высокий", "Срочный", "Низкий"]
 DEPARTMENTS = [
     "Механик",
     "Стр МУ",
@@ -101,6 +103,9 @@ def init_db() -> None:
             description TEXT,
             contact TEXT,
             department TEXT NOT NULL DEFAULT 'Не назначено',
+            assignee TEXT NOT NULL DEFAULT '',
+            due_at TEXT,
+            planned_minutes INTEGER NOT NULL DEFAULT 0,
             priority TEXT NOT NULL DEFAULT 'Обычный',
             status TEXT NOT NULL DEFAULT 'Новая',
             source TEXT NOT NULL DEFAULT 'public_form'
@@ -114,6 +119,8 @@ def init_db() -> None:
         cur.execute("ALTER TABLE tasks ADD COLUMN assignee TEXT NOT NULL DEFAULT ''")
     if "due_at" not in task_columns:
         cur.execute("ALTER TABLE tasks ADD COLUMN due_at TEXT")
+    if "planned_minutes" not in task_columns:
+        cur.execute("ALTER TABLE tasks ADD COLUMN planned_minutes INTEGER NOT NULL DEFAULT 0")
     cur.execute(
         """
         UPDATE tasks
@@ -676,6 +683,8 @@ def public_form(request: Request):
             "page_title": "Отправить задачу",
             "app_title": APP_TITLE,
             "departments": DEPARTMENTS,
+            "priorities": TASK_PRIORITIES,
+            "statuses": TASK_STATUSES,
         },
     )
 
@@ -688,12 +697,21 @@ def submit_task(
     description: str = Form(""),
     contact: str = Form(""),
     department: str = Form(DEFAULT_DEPARTMENT),
+    assignee: str = Form(""),
+    due_at: str = Form(""),
+    planned_minutes: str = Form("0"),
     priority: str = Form("Обычный"),
+    status: str = Form("Новая"),
 ):
+    clean_priority = priority.strip() if priority.strip() in TASK_PRIORITIES else "Обычный"
+    clean_status = status.strip() if status.strip() in TASK_STATUSES else "Новая"
     task_id = execute(
         """
-        INSERT INTO tasks (created_at, initiator, title, description, contact, department, priority, status, source)
-        VALUES (?, ?, ?, ?, ?, ?, ?, 'Новая', 'public_form')
+        INSERT INTO tasks (
+            created_at, initiator, title, description, contact, department, assignee, due_at,
+            planned_minutes, priority, status, source
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'public_form')
         """,
         (
             now_str(),
@@ -702,7 +720,11 @@ def submit_task(
             description.strip(),
             contact.strip(),
             department.strip() if department.strip() in DEPARTMENTS else DEFAULT_DEPARTMENT,
-            priority.strip(),
+            assignee.strip(),
+            normalize_due_at(due_at),
+            parse_planned_minutes(planned_minutes),
+            clean_priority,
+            clean_status,
         ),
     )
 
@@ -897,6 +919,7 @@ def admin_task_edit(
     department: str = Form(DEFAULT_DEPARTMENT),
     assignee: str = Form(""),
     due_at: str = Form(""),
+    planned_minutes: str = Form("0"),
     priority: str = Form("Обычный"),
     status: str = Form("Новая"),
 ):
@@ -907,7 +930,7 @@ def admin_task_edit(
     execute(
         """
         UPDATE tasks
-        SET initiator = ?, title = ?, description = ?, contact = ?, department = ?, assignee = ?, due_at = ?, priority = ?, status = ?
+        SET initiator = ?, title = ?, description = ?, contact = ?, department = ?, assignee = ?, due_at = ?, planned_minutes = ?, priority = ?, status = ?
         WHERE id = ?
         """,
         (
@@ -918,8 +941,9 @@ def admin_task_edit(
             department.strip() if department.strip() in DEPARTMENTS else DEFAULT_DEPARTMENT,
             assignee.strip(),
             normalize_due_at(due_at),
-            priority.strip(),
-            status.strip(),
+            parse_planned_minutes(planned_minutes),
+            priority.strip() if priority.strip() in TASK_PRIORITIES else "Обычный",
+            status.strip() if status.strip() in TASK_STATUSES else "Новая",
             task_id,
         ),
     )
@@ -1002,6 +1026,17 @@ def due_at_for_input(value: str) -> str:
     return dt.strftime("%Y-%m-%dT%H:%M")
 
 
+def parse_planned_minutes(raw_value: str) -> int:
+    raw = (raw_value or "").strip()
+    if not raw:
+        return 0
+    try:
+        minutes = int(float(raw))
+    except ValueError:
+        return 0
+    return max(0, min(minutes, 60 * 24 * 30))
+
+
 def build_board_columns() -> list[dict]:
     rows = fetchall("SELECT * FROM tasks ORDER BY id DESC", ())
     columns = {dep: {"department": dep, "count": 0, "tasks": []} for dep in DEPARTMENTS}
@@ -1025,6 +1060,7 @@ def build_board_columns() -> list[dict]:
                 "title": row["title"],
                 "initiator": row["initiator"],
                 "assignee": (row["assignee"] or "").strip(),
+                "planned_minutes": int(row["planned_minutes"] or 0),
                 "priority": row["priority"],
                 "status": status,
                 "due_at": due_value,

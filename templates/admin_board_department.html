@@ -18,6 +18,7 @@
                     <th>Инициатор</th>
                     <th>Кто взял</th>
                     <th>Срок</th>
+                    <th>План, мин</th>
                     <th>Приоритет</th>
                     <th>Статус</th>
                     <th></th>
@@ -32,12 +33,13 @@
                         <td>{{ task['initiator'] }}</td>
                         <td>{{ task['assignee'] or '—' }}</td>
                         <td>{{ task['due_at'] or '—' }}</td>
+                        <td>{{ task['planned_minutes'] or 0 }}</td>
                         <td>{{ task['priority'] }}</td>
                         <td>{{ task['status'] }}</td>
                         <td><a class="btn btn-secondary" href="/admin/task/{{ task['id'] }}">Открыть</a></td>
                     </tr>
                 {% else %}
-                    <tr><td colspan="9">В этом отделе задач пока нет.</td></tr>
+                    <tr><td colspan="10">В этом отделе задач пока нет.</td></tr>
                 {% endfor %}
             </tbody>
         </table>

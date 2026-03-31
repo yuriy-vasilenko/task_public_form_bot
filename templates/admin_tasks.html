@@ -58,6 +58,7 @@
                     <th>Отдел</th>
                     <th>Кто взял</th>
                     <th>Срок</th>
+                    <th>План, мин</th>
                     <th>Приоритет</th>
                     <th>Статус</th>
                     <th></th>
@@ -71,9 +72,10 @@
                     <td>{{ task['initiator'] }}</td>
                     <td>{{ task['title'] }}</td>
                     <td>{{ task['contact'] or '—' }}</td>
-                    <td>{{ task['department'] or 'Диспетчер' }}</td>
+                    <td>{{ task['department'] or 'Не назначено' }}</td>
                     <td>{{ task['assignee'] or '—' }}</td>
                     <td>{{ task['due_at'] or '—' }}</td>
+                    <td>{{ task['planned_minutes'] or 0 }}</td>
                     <td>{{ task['priority'] }}</td>
                     <td>{{ task['status'] }}</td>
                     <td>
@@ -85,7 +87,7 @@
                     </td>
                 </tr>
             {% else %}
-                <tr><td colspan="11">Записей не найдено.</td></tr>
+                <tr><td colspan="12">Записей не найдено.</td></tr>
             {% endfor %}
             </tbody>
         </table>

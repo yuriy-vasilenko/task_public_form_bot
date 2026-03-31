@@ -25,23 +25,44 @@
             <label>Подробное описание</label>
             <textarea name="description" placeholder="Опишите задачу подробно"></textarea>
         </div>
-        <div style="margin-top:14px; max-width:320px;">
-            <label>Отдел назначения</label>
-            <select name="department" required>
-                <option value="" disabled selected>Выберите отдел</option>
-                {% for item in departments %}
-                    <option value="{{ item }}">{{ item }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div style="margin-top:14px; max-width:320px;">
-            <label>Приоритет</label>
-            <select name="priority">
-                <option>Обычный</option>
-                <option>Высокий</option>
-                <option>Срочный</option>
-                <option>Низкий</option>
-            </select>
+        <div class="grid cols-2" style="margin-top:14px;">
+            <div>
+                <label>Отдел назначения</label>
+                <select name="department" required>
+                    <option value="" disabled selected>Выберите отдел</option>
+                    {% for item in departments %}
+                        <option value="{{ item }}">{{ item }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label>Приоритет</label>
+                <select name="priority">
+                    {% for item in priorities %}
+                        <option value="{{ item }}">{{ item }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label>Статус</label>
+                <select name="status">
+                    {% for item in statuses %}
+                        <option value="{{ item }}" {% if item == 'Новая' %}selected{% endif %}>{{ item }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label>Кто будет выполнять</label>
+                <input type="text" name="assignee" placeholder="Например: Мастер смены">
+            </div>
+            <div>
+                <label>Срок выполнения</label>
+                <input type="datetime-local" name="due_at">
+            </div>
+            <div>
+                <label>Плановое время (минут)</label>
+                <input type="number" min="0" step="5" name="planned_minutes" value="0">
+            </div>
         </div>
         <div class="actions">
             <button type="submit">Отправить задачу</button>

@@ -8,11 +8,12 @@
             <div><strong>Дата:</strong> {{ task['created_at'] }}</div>
             <div><strong>Инициатор:</strong> {{ task['initiator'] }}</div>
             <div><strong>Контакт:</strong> {{ task['contact'] or '—' }}</div>
-            <div><strong>Отдел:</strong> {{ task['department'] or 'Диспетчер' }}</div>
+            <div><strong>Отдел:</strong> {{ task['department'] or 'Не назначено' }}</div>
             <div><strong>Приоритет:</strong> {{ task['priority'] }}</div>
             <div><strong>Статус:</strong> {{ task['status'] }}</div>
             <div><strong>Кто взял:</strong> {{ task['assignee'] or '—' }}</div>
             <div><strong>Срок:</strong> {{ task['due_at'] or '—' }}</div>
+            <div><strong>Плановое время:</strong> {{ task['planned_minutes'] or 0 }} мин</div>
         </div>
         <div style="margin-top:14px;"><strong>Кратко:</strong> {{ task['title'] }}</div>
         <div style="margin-top:14px;"><strong>Полное описание:</strong><br>{{ task['description'] or '—' }}</div>

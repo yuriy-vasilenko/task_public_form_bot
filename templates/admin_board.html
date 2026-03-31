@@ -27,6 +27,7 @@
                             <div class="board-tags">
                                 <span class="board-tag board-tag-priority">{{ task['priority'] }}</span>
                                 <span class="board-tag board-tag-status {% if task['status'] == 'В работе' %}board-tag-status-work{% elif task['status'] == 'Выполнена' %}board-tag-status-done{% elif task['status'] == 'Отложена' %}board-tag-status-hold{% else %}board-tag-status-new{% endif %}">{{ task['status'] }}</span>
+                                <span class="board-tag board-tag-time">План: {{ task['planned_minutes'] or 0 }} мин</span>
                                 <span class="board-tag board-tag-deadline {% if task['is_overdue'] %}board-tag-deadline-overdue{% elif task['due_at'] %}board-tag-deadline-ok{% else %}board-tag-deadline-empty{% endif %}">
                                     {% if task['due_at'] %}Срок: {{ task['due_at'] }}{% else %}Срок: —{% endif %}
                                 </span>

@@ -1,25 +1,25 @@
 :root {
-    --bg: #f4f6f8;
+    --bg: #f2f5fb;
     --card: #ffffff;
-    --line: #d9dde3;
-    --text: #20262e;
-    --muted: #5e6a78;
-    --primary: #1e5eff;
+    --line: #d9e2ef;
+    --text: #192334;
+    --muted: #5d6c82;
+    --primary: #315efb;
     --danger: #c62828;
-    --success: #1f8a46;
+    --success: #1f9a52;
 }
 
 * { box-sizing: border-box; }
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
-    background: var(--bg);
+    font-family: "Inter", "Segoe UI", Arial, sans-serif;
+    background: radial-gradient(1200px 600px at 5% -10%, #ffffff 0%, #f4f7fd 45%, #eef3fb 100%);
     color: var(--text);
 }
 .container {
-    max-width: 1100px;
+    max-width: min(96vw, 1720px);
     margin: 0 auto;
-    padding: 24px 16px 40px;
+    padding: 26px 18px 42px;
 }
 .header {
     margin-bottom: 20px;
@@ -44,9 +44,9 @@ body {
 .card {
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 18px;
-    box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 8px 30px rgba(23, 38, 74, 0.07);
 }
 .grid {
     display: grid;
@@ -77,13 +77,18 @@ textarea { min-height: 140px; resize: vertical; }
 button, .btn {
     display: inline-block;
     border: none;
-    border-radius: 10px;
+    border-radius: 12px;
     padding: 11px 16px;
     background: var(--primary);
     color: #fff;
     text-decoration: none;
     cursor: pointer;
     font-weight: 700;
+    transition: transform .12s ease, box-shadow .2s ease, border-color .2s ease;
+}
+button:hover, .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 22px rgba(49, 94, 251, 0.18);
 }
 .btn-secondary {
     background: #fff;
@@ -128,8 +133,9 @@ th { background: #f8fafc; }
 .kpi {
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: 14px;
+    border-radius: 16px;
     padding: 18px;
+    box-shadow: 0 8px 22px rgba(25, 35, 52, 0.06);
 }
 .kpi .value { font-size: 28px; font-weight: 800; margin-top: 8px; }
 .list-card {
@@ -157,7 +163,7 @@ th { background: #f8fafc; }
     align-items: flex-start;
 }
 .board-shell {
-    background: linear-gradient(180deg, #ffffff 0%, #fcfdff 100%);
+    background: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
 }
 .board-topbar {
     display: flex;
@@ -234,11 +240,11 @@ th { background: #f8fafc; }
 }
 .board-col {
     border: 1px solid var(--line);
-    border-radius: 12px;
-    background: #f9fbff;
-    padding: 10px 10px 6px;
-    min-width: 300px;
-    max-width: 320px;
+    border-radius: 14px;
+    background: #f8fbff;
+    padding: 10px 10px 8px;
+    min-width: 330px;
+    max-width: 350px;
 }
 .board-col h3 {
     margin: 0 0 10px;
@@ -274,12 +280,12 @@ th { background: #f8fafc; }
     color: #22303d;
 }
 .board-item {
-    border: 1px solid #d7e1f3;
-    border-radius: 10px;
+    border: 1px solid #dbe4f0;
+    border-radius: 12px;
     padding: 10px 10px 8px;
     margin-bottom: 10px;
     background: #fff;
-    box-shadow: 0 1px 6px rgba(33, 78, 186, 0.08);
+    box-shadow: 0 4px 14px rgba(35, 59, 112, 0.07);
 }
 .board-item-title {
     font-size: 15px;
@@ -303,8 +309,12 @@ th { background: #f8fafc; }
     font-weight: 700;
 }
 .board-tag-priority {
-    background: #eaf0ff;
-    color: #27479f;
+    background: #e8eeff;
+    color: #2847a3;
+}
+.board-tag-time {
+    background: #f2ecff;
+    color: #5f2ec7;
 }
 .board-tag-status {
     background: #eef1f5;
@@ -392,6 +402,7 @@ th { background: #f8fafc; }
     }
     .card {
         padding: 14px;
+        border-radius: 14px;
     }
     .nav a {
         flex: 1 1 calc(50% - 10px);
@@ -423,7 +434,8 @@ th { background: #f8fafc; }
         grid-template-columns: repeat(2, minmax(200px, 1fr));
     }
     .board-col {
-        min-width: 270px;
+        min-width: 86vw;
+        max-width: 88vw;
     }
     .board-item-title {
         font-size: 14px;
@@ -453,10 +465,7 @@ th { background: #f8fafc; }
         height: 26px;
         font-size: 11px;
     }
-    .board-col {
-        min-width: 85vw;
-        max-width: 88vw;
-    }
+    .board-col { min-width: 90vw; max-width: 92vw; }
     .board-topbar .actions {
         width: 100%;
     }
