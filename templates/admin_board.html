@@ -6,22 +6,41 @@
         <div class="actions" style="margin-top:0;">
             <a class="btn btn-secondary" href="/admin/board">Обновить</a>
         </div>
-        <div class="small board-meta">Управляемая доска для админки</div>
+        <div class="small board-meta">Отделы в одну линию, задачи сразу видны</div>
     </div>
     <p class="small board-note">
-        Доска распределения по фиксированным отделам. Новые задачи отображаются сверху вниз в соответствующей колонке.
+        Видно количество задач по каждому отделу, кто взял в работу и срок выполнения. Новые задачи сверху.
     </p>
-    <div class="dept-grid">
-        {% for dep in departments %}
-            <a class="dept-card" href="/admin/board/department/{{ loop.index0 }}">
-                <div class="dept-head">
-                    <span class="dept-icon">{{ dep[:2] }}</span>
-                    <div class="dept-name">{{ dep }}</div>
+    <div class="board-scroller">
+        <div class="board-wrap">
+            {% for col in board_columns %}
+                <div class="board-col">
+                    <h3>
+                        <a class="board-col-link" href="/admin/board/department/{{ loop.index0 }}">{{ col['department'] }}</a>
+                        <span class="board-col-count">{{ col['count'] }}</span>
+                    </h3>
+                    {% for task in col['tasks'] %}
+                        <div class="board-item">
+                            <div class="board-item-title">#{{ task['id'] }} {{ task['title'] }}</div>
+                            <div class="board-item-meta small">{{ task['created_at'] }} • {{ task['initiator'] }}</div>
+                            <div class="board-item-meta small">Взял: {{ task['assignee'] or '—' }}</div>
+                            <div class="board-tags">
+                                <span class="board-tag board-tag-priority">{{ task['priority'] }}</span>
+                                <span class="board-tag board-tag-status {% if task['status'] == 'В работе' %}board-tag-status-work{% elif task['status'] == 'Выполнена' %}board-tag-status-done{% elif task['status'] == 'Отложена' %}board-tag-status-hold{% else %}board-tag-status-new{% endif %}">{{ task['status'] }}</span>
+                                <span class="board-tag board-tag-deadline {% if task['is_overdue'] %}board-tag-deadline-overdue{% elif task['due_at'] %}board-tag-deadline-ok{% else %}board-tag-deadline-empty{% endif %}">
+                                    {% if task['due_at'] %}Срок: {{ task['due_at'] }}{% else %}Срок: —{% endif %}
+                                </span>
+                            </div>
+                            <div class="actions board-item-actions">
+                                <a class="btn btn-secondary" href="/admin/task/{{ task['id'] }}">Открыть</a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="board-empty small">Задач пока нет.</div>
+                    {% endfor %}
                 </div>
-                <div class="small">Открыть таблицу задач отдела</div>
-                <div class="dept-count">{{ counts[dep] }}</div>
-            </a>
-        {% endfor %}
+            {% endfor %}
+        </div>
     </div>
 </div>
 {% endblock %}

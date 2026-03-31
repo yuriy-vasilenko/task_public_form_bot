@@ -27,7 +27,7 @@
                 <label>Отдел</label>
                 <select name="department">
                     {% for item in departments %}
-                        <option value="{{ item }}" {% if (task['department'] or 'Не назначено') == item %}selected{% endif %}>{{ item }}</option>
+                        <option value="{{ item }}" {% if (task['department'] or 'Диспетчер') == item %}selected{% endif %}>{{ item }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -38,6 +38,14 @@
                         <option value="{{ item }}" {% if task['priority'] == item %}selected{% endif %}>{{ item }}</option>
                     {% endfor %}
                 </select>
+            </div>
+            <div>
+                <label>Кто взял в работу</label>
+                <input type="text" name="assignee" value="{{ task['assignee'] or '' }}" placeholder="Например: Петров А.А.">
+            </div>
+            <div>
+                <label>Срок выполнения</label>
+                <input type="datetime-local" name="due_at" value="{{ due_at_input }}">
             </div>
             <div>
                 <label>Статус</label>

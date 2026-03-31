@@ -16,6 +16,8 @@
                     <th>Дата</th>
                     <th>Кратко</th>
                     <th>Инициатор</th>
+                    <th>Кто взял</th>
+                    <th>Срок</th>
                     <th>Приоритет</th>
                     <th>Статус</th>
                 </tr>
@@ -27,11 +29,13 @@
                         <td>{{ task['created_at'] }}</td>
                         <td>{{ task['title'] }}</td>
                         <td>{{ task['initiator'] }}</td>
+                        <td>{{ task['assignee'] or '—' }}</td>
+                        <td>{{ task['due_at'] or '—' }}</td>
                         <td>{{ task['priority'] }}</td>
                         <td>{{ task['status'] }}</td>
                     </tr>
                 {% else %}
-                    <tr><td colspan="6">В этом отделе задач пока нет.</td></tr>
+                    <tr><td colspan="8">В этом отделе задач пока нет.</td></tr>
                 {% endfor %}
             </tbody>
         </table>

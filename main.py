@@ -64,8 +64,9 @@ DEPARTMENTS = [
     "Юр отдел",
     "Сист Админ",
     "Энерго уч",
+    "Не назначено",
 ]
-DEFAULT_DEPARTMENT = "Диспетчер"
+DEFAULT_DEPARTMENT = "Не назначено"
 
 # max printable width inside <pre> per chunk (Telegram limit 4096 per message)
 TG_TABLE_CHUNK = 3400
@@ -99,7 +100,7 @@ def init_db() -> None:
             title TEXT NOT NULL,
             description TEXT,
             contact TEXT,
-            department TEXT NOT NULL DEFAULT 'Диспетчер',
+            department TEXT NOT NULL DEFAULT 'Не назначено',
             priority TEXT NOT NULL DEFAULT 'Обычный',
             status TEXT NOT NULL DEFAULT 'Новая',
             source TEXT NOT NULL DEFAULT 'public_form'
@@ -108,12 +109,16 @@ def init_db() -> None:
     )
     task_columns = {str(row["name"]) for row in cur.execute("PRAGMA table_info(tasks)").fetchall()}
     if "department" not in task_columns:
-        cur.execute("ALTER TABLE tasks ADD COLUMN department TEXT NOT NULL DEFAULT 'Диспетчер'")
+        cur.execute("ALTER TABLE tasks ADD COLUMN department TEXT NOT NULL DEFAULT 'Не назначено'")
+    if "assignee" not in task_columns:
+        cur.execute("ALTER TABLE tasks ADD COLUMN assignee TEXT NOT NULL DEFAULT ''")
+    if "due_at" not in task_columns:
+        cur.execute("ALTER TABLE tasks ADD COLUMN due_at TEXT")
     cur.execute(
         """
         UPDATE tasks
         SET department = ?
-        WHERE department IS NULL OR trim(department) = '' OR department = 'Не назначено'
+        WHERE department IS NULL OR trim(department) = ''
         """,
         (DEFAULT_DEPARTMENT,),
     )
@@ -872,7 +877,12 @@ def admin_task_edit_page(task_id: int, request: Request):
     return templates.TemplateResponse(
         request,
         "admin_task_edit.html",
-        {"page_title": f"Редактирование #{task_id}", "task": task, "departments": DEPARTMENTS},
+        {
+            "page_title": f"Редактирование #{task_id}",
+            "task": task,
+            "departments": DEPARTMENTS,
+            "due_at_input": due_at_for_input(task["due_at"] if task else ""),
+        },
     )
 
 
@@ -885,6 +895,8 @@ def admin_task_edit(
     description: str = Form(""),
     contact: str = Form(""),
     department: str = Form(DEFAULT_DEPARTMENT),
+    assignee: str = Form(""),
+    due_at: str = Form(""),
     priority: str = Form("Обычный"),
     status: str = Form("Новая"),
 ):
@@ -895,7 +907,7 @@ def admin_task_edit(
     execute(
         """
         UPDATE tasks
-        SET initiator = ?, title = ?, description = ?, contact = ?, department = ?, priority = ?, status = ?
+        SET initiator = ?, title = ?, description = ?, contact = ?, department = ?, assignee = ?, due_at = ?, priority = ?, status = ?
         WHERE id = ?
         """,
         (
@@ -904,6 +916,8 @@ def admin_task_edit(
             description.strip(),
             contact.strip(),
             department.strip() if department.strip() in DEPARTMENTS else DEFAULT_DEPARTMENT,
+            assignee.strip(),
+            normalize_due_at(due_at),
             priority.strip(),
             status.strip(),
             task_id,
@@ -923,8 +937,7 @@ def admin_board(request: Request):
         "admin_board.html",
         {
             "page_title": "Доска распределения",
-            "departments": DEPARTMENTS,
-            "counts": get_department_counts(),
+            "board_columns": build_board_columns(),
         },
     )
 
@@ -957,6 +970,71 @@ def get_department_tasks(dep_name: str) -> list[sqlite3.Row]:
     return fetchall("SELECT * FROM tasks WHERE department = ? ORDER BY id DESC", (dep_name,))
 
 
+def parse_dt(value: str) -> Optional[datetime]:
+    raw = (value or "").strip()
+    if not raw:
+        return None
+    normalized = raw.replace("T", " ")
+    if len(normalized) == 16:
+        normalized += ":00"
+    for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M"):
+        try:
+            return datetime.strptime(normalized, fmt)
+        except ValueError:
+            continue
+    return None
+
+
+def normalize_due_at(value: str) -> str:
+    raw = (value or "").strip()
+    if not raw:
+        return ""
+    normalized = raw.replace("T", " ")
+    if len(normalized) == 16:
+        normalized += ":00"
+    return normalized
+
+
+def due_at_for_input(value: str) -> str:
+    dt = parse_dt(value)
+    if not dt:
+        return ""
+    return dt.strftime("%Y-%m-%dT%H:%M")
+
+
+def build_board_columns() -> list[dict]:
+    rows = fetchall("SELECT * FROM tasks ORDER BY id DESC", ())
+    columns = {dep: {"department": dep, "count": 0, "tasks": []} for dep in DEPARTMENTS}
+    now_local = datetime.now(APP_TZ).replace(tzinfo=None)
+
+    for row in rows:
+        dep = (row["department"] or DEFAULT_DEPARTMENT).strip()
+        if dep not in columns:
+            dep = DEFAULT_DEPARTMENT
+
+        due_value = (row["due_at"] or "").strip()
+        due_dt = parse_dt(due_value)
+        status = (row["status"] or "").strip()
+        is_overdue = bool(due_dt and due_dt < now_local and status != "Выполнена")
+
+        columns[dep]["count"] += 1
+        columns[dep]["tasks"].append(
+            {
+                "id": row["id"],
+                "created_at": row["created_at"],
+                "title": row["title"],
+                "initiator": row["initiator"],
+                "assignee": (row["assignee"] or "").strip(),
+                "priority": row["priority"],
+                "status": status,
+                "due_at": due_value,
+                "is_overdue": is_overdue,
+            }
+        )
+
+    return [columns[dep] for dep in DEPARTMENTS]
+
+
 def get_department_counts() -> dict[str, int]:
     counts = {dep: 0 for dep in DEPARTMENTS}
     rows = fetchall("SELECT department, COUNT(*) AS c FROM tasks GROUP BY department", ())
@@ -975,8 +1053,7 @@ def public_board(request: Request):
         "public_board.html",
         {
             "page_title": "Доска задач по отделам",
-            "departments": DEPARTMENTS,
-            "counts": get_department_counts(),
+            "board_columns": build_board_columns(),
         },
     )
 
