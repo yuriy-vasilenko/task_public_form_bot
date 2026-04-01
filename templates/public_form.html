@@ -53,11 +53,7 @@
             </div>
             <div>
                 <label>Ответственный</label>
-                <select name="assignee" required>
-                    {% for item in responsibles %}
-                        <option value="{{ item }}" {% if item == default_responsible %}selected{% endif %}>{{ item }}</option>
-                    {% endfor %}
-                </select>
+                <input type="text" name="assignee" placeholder="Например: Микиртумов">
             </div>
             <div>
                 <label>Срок выполнения</label>

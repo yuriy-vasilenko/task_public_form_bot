@@ -56,14 +56,14 @@ DAILY_ALL_HOUR_MSK = 9
 DAILY_ALL_MINUTE_MSK = 0
 TASK_STATUSES = ["Новая", "В работе", "Выполнена", "Отложена"]
 TASK_PRIORITIES = ["Обычный", "Высокий", "Срочный", "Низкий"]
-RESPONSIBLES = ["Микиртумов", "Березовой"]
-DEFAULT_RESPONSIBLE = "Микиртумов"
 DEPARTMENTS = [
     "Механик",
     "Стр МУ",
     "Диспетчер",
     "Ассист Г",
     "Ассист Д",
+    "Микиртумов",
+    "Березовой",
     "Бухгалтерия",
     "Юр отдел",
     "Сист Админ",
@@ -687,8 +687,6 @@ def public_form(request: Request):
             "departments": DEPARTMENTS,
             "priorities": TASK_PRIORITIES,
             "statuses": TASK_STATUSES,
-            "responsibles": RESPONSIBLES,
-            "default_responsible": DEFAULT_RESPONSIBLE,
         },
     )
 
@@ -709,7 +707,6 @@ def submit_task(
 ):
     clean_priority = priority.strip() if priority.strip() in TASK_PRIORITIES else "Обычный"
     clean_status = status.strip() if status.strip() in TASK_STATUSES else "Новая"
-    clean_assignee = normalize_responsible(assignee)
     task_id = execute(
         """
         INSERT INTO tasks (
@@ -725,7 +722,7 @@ def submit_task(
             description.strip(),
             contact.strip(),
             department.strip() if department.strip() in DEPARTMENTS else DEFAULT_DEPARTMENT,
-            clean_assignee,
+            assignee.strip(),
             normalize_due_at(due_at),
             parse_planned_minutes(planned_minutes),
             clean_priority,
@@ -908,7 +905,6 @@ def admin_task_edit_page(task_id: int, request: Request):
             "page_title": f"Редактирование #{task_id}",
             "task": task,
             "departments": DEPARTMENTS,
-            "responsibles": RESPONSIBLES,
             "due_at_input": due_at_for_input(task["due_at"] if task else ""),
         },
     )
@@ -945,7 +941,7 @@ def admin_task_edit(
             description.strip(),
             contact.strip(),
             department.strip() if department.strip() in DEPARTMENTS else DEFAULT_DEPARTMENT,
-            normalize_responsible(assignee),
+            assignee.strip(),
             normalize_due_at(due_at),
             parse_planned_minutes(planned_minutes),
             priority.strip() if priority.strip() in TASK_PRIORITIES else "Обычный",
@@ -957,20 +953,16 @@ def admin_task_edit(
 
 
 @app.get("/admin/board", response_class=HTMLResponse)
-def admin_board(request: Request, responsible: str = DEFAULT_RESPONSIBLE):
+def admin_board(request: Request):
     redirect = require_login(request)
     if redirect:
         return redirect
-    active_responsible = normalize_responsible(responsible)
-
     return templates.TemplateResponse(
         request,
         "admin_board.html",
         {
             "page_title": "Доска распределения",
-            "board_columns": build_board_columns(active_responsible),
-            "responsibles": RESPONSIBLES,
-            "active_responsible": active_responsible,
+            "board_columns": build_board_columns(),
         },
     )
 
@@ -1046,18 +1038,8 @@ def parse_planned_minutes(raw_value: str) -> int:
     return max(0, min(minutes, 60 * 24 * 30))
 
 
-def normalize_responsible(value: str) -> str:
-    value = (value or "").strip()
-    key_map = {name.lower().replace("ё", "е"): name for name in RESPONSIBLES}
-    key = value.lower().replace("ё", "е")
-    return key_map.get(key, DEFAULT_RESPONSIBLE)
-
-
 def build_board_columns(responsible: str = "") -> list[dict]:
-    if responsible:
-        rows = fetchall("SELECT * FROM tasks WHERE assignee = ? ORDER BY id DESC", (normalize_responsible(responsible),))
-    else:
-        rows = fetchall("SELECT * FROM tasks ORDER BY id DESC", ())
+    rows = fetchall("SELECT * FROM tasks ORDER BY id DESC", ())
     columns = {dep: {"department": dep, "count": 0, "tasks": []} for dep in DEPARTMENTS}
     now_local = datetime.now(APP_TZ).replace(tzinfo=None)
 
@@ -1102,16 +1084,13 @@ def get_department_counts() -> dict[str, int]:
 
 
 @app.get("/board", response_class=HTMLResponse)
-def public_board(request: Request, responsible: str = DEFAULT_RESPONSIBLE):
-    active_responsible = normalize_responsible(responsible)
+def public_board(request: Request):
     return templates.TemplateResponse(
         request,
         "public_board.html",
         {
             "page_title": "Доска задач по отделам",
-            "board_columns": build_board_columns(active_responsible),
-            "responsibles": RESPONSIBLES,
-            "active_responsible": active_responsible,
+            "board_columns": build_board_columns(),
         },
     )
 
