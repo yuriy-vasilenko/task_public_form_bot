@@ -291,9 +291,9 @@ th { background: #f8fafc; }
     border: 1px solid var(--line);
     border-radius: 14px;
     background: #f8fbff;
-    padding: 8px 8px 6px;
-    min-width: 280px;
-    max-width: 300px;
+    padding: 7px 7px 5px;
+    min-width: 250px;
+    max-width: 268px;
 }
 .board-col:nth-child(4n+1) { border-top: 3px solid #6a8dff; }
 .board-col:nth-child(4n+2) { border-top: 3px solid #36a56f; }
@@ -309,8 +309,8 @@ th { background: #f8fafc; }
 .board-col:nth-child(4n+4) .board-col-link { color: #9a620f; }
 }
 .board-col h3 {
-    margin: 0 0 8px;
-    font-size: 13px;
+    margin: 0 0 6px;
+    font-size: 12px;
     position: sticky;
     top: 0;
     background: #f9fbff;
@@ -330,12 +330,12 @@ th { background: #f8fafc; }
 }
 .board-col-count {
     display: inline-flex;
-    min-width: 24px;
-    height: 24px;
+    min-width: 22px;
+    height: 22px;
     align-items: center;
     justify-content: center;
     border-radius: 999px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 800;
     background: #edf1f5;
     border: 1px solid #d8dee6;
@@ -344,19 +344,19 @@ th { background: #f8fafc; }
 .board-item {
     border: 1px solid #dbe4f0;
     border-radius: 12px;
-    padding: 8px 8px 6px;
-    margin-bottom: 8px;
+    padding: 7px 7px 5px;
+    margin-bottom: 6px;
     background: #fff;
     box-shadow: 0 4px 14px rgba(35, 59, 112, 0.07);
 }
 .board-item-title {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
     line-height: 1.35;
 }
 .board-item-meta {
     margin-top: 3px;
-    font-size: 12px;
+    font-size: 11px;
 }
 .board-tags {
     margin-top: 8px;
@@ -366,9 +366,9 @@ th { background: #f8fafc; }
 }
 .board-tag {
     display: inline-block;
-    padding: 3px 7px;
+    padding: 2px 6px;
     border-radius: 999px;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
 }
 .board-tag-priority {
@@ -521,8 +521,8 @@ th { background: #f8fafc; }
         grid-template-columns: repeat(2, minmax(200px, 1fr));
     }
     .board-col {
-        min-width: 82vw;
-        max-width: 84vw;
+        min-width: 78vw;
+        max-width: 80vw;
     }
     .board-table {
         min-width: 840px;
