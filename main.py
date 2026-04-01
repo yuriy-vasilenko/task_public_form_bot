@@ -56,7 +56,7 @@ DAILY_ALL_HOUR_MSK = 9
 DAILY_ALL_MINUTE_MSK = 0
 TASK_STATUSES = ["Новая", "В работе", "Выполнена", "Отложена"]
 TASK_PRIORITIES = ["Обычный", "Высокий", "Срочный", "Низкий"]
-RESPONSIBLES = ["Микиртумов", "Берёзовой"]
+RESPONSIBLES = ["Микиртумов", "Березовой"]
 DEFAULT_RESPONSIBLE = "Микиртумов"
 DEPARTMENTS = [
     "Механик",
