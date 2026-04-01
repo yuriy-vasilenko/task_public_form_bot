@@ -13,7 +13,7 @@
     </p>
     <div class="board-layout">
         <aside class="board-side">
-            <h3>Ответственные</h3>
+            <h3>Ответственный</h3>
             <div class="board-switch">
             {% for person in responsibles %}
                 <a class="btn btn-secondary {% if person == active_responsible %}board-switch-active{% endif %}" href="/board?responsible={{ person }}">{{ person }}</a>
