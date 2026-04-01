@@ -41,7 +41,11 @@
             </div>
             <div>
                 <label>Кто взял в работу</label>
-                <input type="text" name="assignee" value="{{ task['assignee'] or '' }}" placeholder="Например: Петров А.А.">
+                <select name="assignee">
+                    {% for item in responsibles %}
+                        <option value="{{ item }}" {% if (task['assignee'] or '') == item %}selected{% endif %}>{{ item }}</option>
+                    {% endfor %}
+                </select>
             </div>
             <div>
                 <label>Срок выполнения</label>
