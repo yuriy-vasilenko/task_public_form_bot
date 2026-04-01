@@ -416,9 +416,32 @@ th { background: #f8fafc; }
 .board-table-wrap {
     border: 1px solid var(--line);
     border-radius: 12px;
+    overflow: auto;
+    background: #fff;
 }
 .board-table {
-    min-width: 840px;
+    min-width: 980px;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+.board-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #f3f7ff;
+    font-size: 13px;
+    letter-spacing: 0.2px;
+}
+.board-table tbody tr:nth-child(even) {
+    background: #fbfcff;
+}
+.board-table tbody tr:hover {
+    background: #f2f7ff;
+}
+.board-cell-title {
+    font-weight: 700;
+    min-width: 240px;
+    max-width: 420px;
 }
 .two-col {
     display: grid;
@@ -485,6 +508,12 @@ th { background: #f8fafc; }
     .board-col {
         min-width: 86vw;
         max-width: 88vw;
+    }
+    .board-table {
+        min-width: 840px;
+    }
+    .board-table thead th {
+        position: static;
     }
     .board-layout {
         grid-template-columns: 1fr;

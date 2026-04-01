@@ -29,13 +29,15 @@
                     <tr>
                         <td>#{{ task['id'] }}</td>
                         <td>{{ task['created_at'] }}</td>
-                        <td>{{ task['title'] }}</td>
+                        <td class="board-cell-title">{{ task['title'] }}</td>
                         <td>{{ task['initiator'] }}</td>
                         <td>{{ task['assignee'] or '—' }}</td>
                         <td>{{ task['due_at'] or '—' }}</td>
                         <td>{{ task['planned_minutes'] or 0 }}</td>
-                        <td>{{ task['priority'] }}</td>
-                        <td>{{ task['status'] }}</td>
+                        <td><span class="board-tag board-tag-priority">{{ task['priority'] }}</span></td>
+                        <td>
+                            <span class="board-tag board-tag-status {% if task['status'] == 'В работе' %}board-tag-status-work{% elif task['status'] == 'Выполнена' %}board-tag-status-done{% elif task['status'] == 'Отложена' %}board-tag-status-hold{% else %}board-tag-status-new{% endif %}">{{ task['status'] }}</span>
+                        </td>
                         <td><a class="btn btn-secondary" href="/admin/task/{{ task['id'] }}">Открыть</a></td>
                     </tr>
                 {% else %}
