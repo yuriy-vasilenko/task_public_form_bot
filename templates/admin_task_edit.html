@@ -40,7 +40,7 @@
                 </select>
             </div>
             <div>
-                <label>Кто взял в работу</label>
+                <label>Ответственный</label>
                 <select name="assignee">
                     {% for item in responsibles %}
                         <option value="{{ item }}" {% if (task['assignee'] or '') == item %}selected{% endif %}>{{ item }}</option>

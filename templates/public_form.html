@@ -52,7 +52,7 @@
                 </select>
             </div>
             <div>
-                <label>Кто будет выполнять</label>
+                <label>Ответственный</label>
                 <select name="assignee" required>
                     {% for item in responsibles %}
                         <option value="{{ item }}" {% if item == default_responsible %}selected{% endif %}>{{ item }}</option>
