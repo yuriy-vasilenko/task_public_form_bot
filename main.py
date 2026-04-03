@@ -57,7 +57,7 @@ DAILY_ALL_MINUTE_MSK = 0
 TASK_STATUSES = ["Новая", "В работе", "Выполнена", "Отложена"]
 TASK_PRIORITIES = ["Обычный", "Высокий", "Срочный", "Низкий"]
 DEPARTMENTS = [
-    "Микиртумов",
+    "Микертумов",
     "Березовой",
     "Механик",
     "Стр МУ",
@@ -130,6 +130,20 @@ def init_db() -> None:
         WHERE department IS NULL OR trim(department) = ''
         """,
         (DEFAULT_DEPARTMENT,),
+    )
+    cur.execute(
+        """
+        UPDATE tasks
+        SET department = 'Микертумов'
+        WHERE trim(department) = 'Микиртумов'
+        """
+    )
+    cur.execute(
+        """
+        UPDATE tasks
+        SET assignee = 'Микертумов'
+        WHERE trim(assignee) = 'Микиртумов'
+        """
     )
     cur.execute(
         """
